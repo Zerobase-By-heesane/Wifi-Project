@@ -17,6 +17,7 @@ public class BookmarkCreateServlet extends HttpServlet {
         db = new DBHandler();
 
     }
+
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
         request.getRequestDispatcher("/bookmark-insert.jsp").forward(request, response);

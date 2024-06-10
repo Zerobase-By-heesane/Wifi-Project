@@ -33,6 +33,7 @@ public class WiFiDetail extends HttpServlet {
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        request.setCharacterEncoding("UTF-8");
         try {
             String wifiIdParam = request.getParameter("wifiId");
             if (wifiIdParam == null || wifiIdParam.isEmpty()) {

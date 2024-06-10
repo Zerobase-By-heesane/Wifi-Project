@@ -387,40 +387,45 @@ public class DBHandler {
 
     public boolean mappingBookmarkAndWiFi(int wifiId, String groupName){
         openConnection();
+        ResultSet innerResultSet2 = null;
+        PreparedStatement preparedStatement2 = null;
+        PreparedStatement preparedStatement = null;
+
         try {
             // 중복 검사
-
-
             String innerSql2 = "SELECT id FROM bookmark WHERE name = ?";
-            PreparedStatement preparedStatement2 = connection.prepareStatement(innerSql2);
+            System.out.println(groupName);
+            preparedStatement2 = connection.prepareStatement(innerSql2);
             preparedStatement2.setString(1, groupName);
-            ResultSet innerResultSet2 = preparedStatement2.executeQuery();
-            Integer bookmarkId = innerResultSet2.getInt("id");
+            innerResultSet2 = preparedStatement2.executeQuery();
 
-            String innerSql = "SELECT * FROM relation WHERE bookmark_id = ? AND wifi_id = ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(innerSql);
-            preparedStatement.setInt(1, bookmarkId);
-            preparedStatement.setInt(2, wifiId);
+            if (innerResultSet2.next()) {
+                Integer bookmarkId = innerResultSet2.getInt("id");
 
-            ResultSet innerResultSet = preparedStatement.executeQuery();
-            if(innerResultSet.next()){
+                String sql = "INSERT INTO relation (bookmark_id, wifi_id, createdAt) VALUES (?, ?, ?)";
+                preparedStatement = connection.prepareStatement(sql);
+
+                preparedStatement.setInt(1, bookmarkId);
+                preparedStatement.setInt(2, wifiId);
+                preparedStatement.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
+                preparedStatement.executeUpdate();
+                return true;
+            } else {
+                System.err.println("해당 그룹 이름을 찾을 수 없습니다.");
                 return false;
             }
-
-            String sql = "INSERT INTO relation (bookmark_id, wifi_id, createdAt) VALUES (?, ?, ?)";
-            preparedStatement = connection.prepareStatement(sql);
-
-            preparedStatement.setInt(1, bookmarkId);
-            preparedStatement.setInt(2, wifiId);
-            preparedStatement.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
-
-            preparedStatement.executeUpdate();
-            return true;
         } catch (SQLException e) {
             System.err.println("데이터를 추가할 수 없습니다.");
             e.printStackTrace();
             return false;
-        }finally {
+        } finally {
+            try {
+                if (innerResultSet2 != null) innerResultSet2.close();
+                if (preparedStatement2 != null) preparedStatement2.close();
+                if (preparedStatement != null) preparedStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             closeConnection(this.connection);
         }
     }
